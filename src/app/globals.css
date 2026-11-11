@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =====================================================================
+   SONIC RIDER — Design Tokens (single source of truth)
+   Defined 2026-11-11. Full reference & usage rules: docs/BRAND.md
+
+   Official brand values: --primary / --background / --surface
+   Technical neutrals (dark-theme scaffolding, not final brand
+   decisions, quiet and replaceable):
+   --primary-foreground / --foreground / --muted / --border
+   ===================================================================== */
+:root {
+  /* Brand palette */
+  --background: #0b0e14; /* Dark Background */
+  --surface: #161b22; /* Card Background */
+  --primary: #00e5ff; /* Primary Neon Cyan */
+  --primary-foreground: #04121a; /* readable text on primary */
+
+  /* Technical neutrals */
+  --foreground: #e6edf3;
+  --muted: #8b98a9;
+  --border: #21262d;
+
+  /* Display font: aliases Rubik until Beast / Luktao are licensed
+     for web use. See docs/BRAND.md §2 before changing this. */
+  --font-display: var(--font-rubik);
+}
+
+@layer base {
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+}
