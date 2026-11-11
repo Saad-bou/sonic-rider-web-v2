@@ -3,11 +3,14 @@ import localFont from "next/font/local";
 import "./globals.css";
 
 /*
- * Brand fonts (see docs/BRAND.md):
- *  - Rubik (variable, 300–900) — bundled under src/fonts/, SIL OFL 1.1.
- *  - Beast & Luktao — Canva Pro fonts, pending a web licensing decision;
- *    NOT bundled. Once licensed: drop the files in src/fonts/ and register
- *    a second localFont here, then repoint --font-display in globals.css.
+ * Brand fonts — 3-tier hierarchy (docs/BRAND.md §2):
+ *   display    → Hyperwave (Sail Studios, commercial) — NOT bundled, licensing pending
+ *   subdisplay → Luktao — NOT bundled, source/licensing to confirm
+ *   sans       → Rubik (variable 300–900) — bundled here, SIL OFL 1.1
+ * Both pending faces currently alias Rubik via --font-display /
+ * --font-subdisplay in globals.css. To add one: drop the licensed file in
+ * src/fonts/ and register a localFont with its own `variable`, then repoint
+ * the alias in globals.css.
  */
 const rubik = localFont({
   src: "../fonts/Rubik-Variable.ttf",

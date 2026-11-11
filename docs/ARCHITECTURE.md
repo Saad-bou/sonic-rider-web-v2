@@ -15,7 +15,9 @@ Commerce is explicitly out of scope until the brand and audience are ready.
   Migrating to v4 would be a conscious future decision, not an accident to fix.
 - **Design tokens live in CSS variables** (`src/app/globals.css` `:root`) and are
   mapped in `tailwind.config.ts`. Changing the brand = changing variables,
-  not hunting hex codes through components.
+  not hunting hex codes through components. Typography is **3-tier**
+  (`font-display` Hyperwave / `font-subdisplay` Luktao / `font-sans` Rubik) —
+  faces pending licensing alias Rubik until swapped in (docs/BRAND.md §2).
 - **Headless WordPress** (REST API) is the planned CMS — a later milestone, not started.
 - No paid services. No secrets in client code. `NEXT_PUBLIC_*` only for values that
   are public by definition. No second backend unless a real need appears.
