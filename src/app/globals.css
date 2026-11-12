@@ -97,6 +97,37 @@
   -webkit-text-stroke: 1px rgba(255, 255, 255, 0.22);
 }
 
+/* =====================================================================
+   Hero stage — fusion portrait (components/hero-stage.tsx)
+   --mx / --my  : cursor position (%, animated by GSAP quickTo)
+   --reveal     : mask radius multiplier (vmax, scrubbed with scroll)
+   ===================================================================== */
+.hero-stage {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.hero-mask {
+  -webkit-mask-image: radial-gradient(
+    circle calc(var(--reveal, 10) * 1vmax) at calc(var(--mx, 50) * 1%) calc(var(--my, 40) * 1%),
+    #000 0%,
+    rgba(0, 0, 0, 0.9) 52%,
+    transparent 74%
+  );
+  mask-image: radial-gradient(
+    circle calc(var(--reveal, 10) * 1vmax) at calc(var(--mx, 50) * 1%) calc(var(--my, 40) * 1%),
+    #000 0%,
+    rgba(0, 0, 0, 0.9) 52%,
+    transparent 74%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-mask {
+    display: none;
+  }
+}
+
 /* The "hover to reveal" hint is pointless on touch devices */
 @media (hover: none) {
   .hover-pill {

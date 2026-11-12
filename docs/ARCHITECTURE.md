@@ -18,20 +18,25 @@ Commerce is explicitly out of scope until the brand and audience are ready.
   not hunting hex codes through components. Typography is **3-tier**
   (`font-display` Hyperwave / `font-subdisplay` Luktao / `font-sans` Rubik) —
   faces pending licensing alias Rubik until swapped in (docs/BRAND.md §2).
+- **Motion stack:** GSAP + ScrollTrigger (pinning, scrubbed timelines) + Lenis
+  (smooth scroll), client components only, always cleaned up in `useEffect`, always
+  respecting `prefers-reduced-motion`.
 - **Headless WordPress** (REST API) is the planned CMS — a later milestone, not started.
 - No paid services. No secrets in client code. `NEXT_PUBLIC_*` only for values that
   are public by definition. No second backend unless a real need appears.
 
-## 2. Current state (v0.1.0 — 2026-11-11 / home v1 — 2026-11-12)
+## 2. Current state (home v2 — 2026-11-13)
 
 **Done:** project scaffold, strict TS, Tailwind + brand tokens, Rubik bundled (OFL),
-**home page v1** — hero with cursor-reveal effect, marquee, scroll-linked statement,
-story timeline (2017→2026), garage grid, on/off split with real photos, socials,
-big footer; progressive-enhancement reveals (visible without JS), reduced-motion
-support, favicon placeholder, `.env.example` contract, git initialized.
+**home v2** — 8-section immersive page: fusion hero with cursor-driven reveal mask and
+pinned scroll transformation (GSAP ScrollTrigger + Lenis smooth scroll), kinetic
+philosophy statement, pinned horizontal journey (2017→2026), editorial road gallery with
+real frames, creator section, off-road portrait, community rows, full-screen final.
+Progressive enhancement + prefers-reduced-motion respected.
 
 **Intentionally not done:** Journal/CMS pages, ESLint/Prettier, WordPress integration,
-SEO infrastructure, tests, real hero shoot (see `docs/HOME-HERO-ASSETS.md`).
+SEO infrastructure, tests, real hero shoot (ASSET B missing — see
+`docs/HOME-HERO-ASSETS.md`), bike photographs.
 
 ## 3. Planned information architecture (agreed, not built)
 

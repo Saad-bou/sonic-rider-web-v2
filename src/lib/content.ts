@@ -1,76 +1,78 @@
 import { Camera, Music2, Play, type LucideIcon } from "lucide-react";
 
 /**
- * SONIC RIDER — home page content.
- * Single source of truth for the narrative data (edit here, not in components).
+ * SONIC RIDER — site content.
+ * Single source of truth for narrative data (edit here, never hard-code in components).
+ * Rule: no invented facts, no invented metrics.
  */
 
-export type TimelineEntry = {
+export type JourneyChapter = {
   year: string;
-  title: string;
-  subtitle: string;
+  name: string;
   tag: string;
   note: string;
 };
 
-export const timeline: TimelineEntry[] = [
+export const journey: JourneyChapter[] = [
   {
     year: "2017",
-    title: "First wheels",
-    subtitle: "Aprilia SR 50",
+    name: "Aprilia SR 50",
     tag: "50cc",
-    note: "First bike, first helmet, first taste of freedom.",
+    note: "The beginning. A 50cc Aprilia, and a passion that refused to stay small.",
   },
   {
     year: "2020",
-    title: "The first big bike",
-    subtitle: "Honda Hornet 600 (2007)",
-    tag: "600cc",
-    note: "Bac done, license in hand — the step up.",
+    name: "Honda Hornet 600",
+    tag: "600cc · 2007",
+    note: "The licence. The first big bike. And the first videos on TikTok.",
   },
   {
     year: "2022",
-    title: "Camera on",
-    subtitle: "TikTok & YouTube",
-    tag: "Content",
-    note: "Rides, exhaust notes and the city at night — the channel starts.",
-  },
-  {
-    year: "2022",
-    title: "Full carbon era",
-    subtitle: "Suzuki GSX-R 750 (2010)",
-    tag: "750cc",
-    note: "Two seasons of pure riding on the GSX-R.",
+    name: "Suzuki GSX-R 750",
+    tag: "750cc · 2010",
+    note: "Full carbon. The GSX-R era — and YouTube joins the story.",
   },
   {
     year: "2024",
-    title: "The last ride",
-    subtitle: "GSX-R story ends",
-    tag: "Pause",
-    note: "The bike goes. The road goes quiet.",
+    name: "End of a chapter",
+    tag: "The pause",
+    note: "The GSX-R chapter closes. The ride does not.",
   },
   {
     year: "2026",
-    title: "The return",
-    subtitle: "Yamaha Tracer 900",
-    tag: "900cc",
-    note: "SONIC RIDER 2.0 — same rider, new chapter.",
+    name: "Yamaha Tracer 900",
+    tag: "Now",
+    note: "The story picks up again — same rider, new chapter.",
   },
 ];
 
-export type GarageEntry = {
-  index: string;
-  name: string;
-  years: string;
-  cc: string;
-  note: string;
+export type RoadShot = {
+  src: string;
+  alt: string;
+  caption: string;
 };
 
-export const garage: GarageEntry[] = [
-  { index: "01", name: "Aprilia SR 50", years: "2017", cc: "50cc", note: "Where it all started." },
-  { index: "02", name: "Honda Hornet 600", years: "2020", cc: "600cc", note: "The first big one." },
-  { index: "03", name: "Suzuki GSX-R 750", years: "2022 – 2024", cc: "750cc", note: "Full carbon era." },
-  { index: "04", name: "Yamaha Tracer 900", years: "2026 –", cc: "900cc", note: "The comeback machine." },
+export const roadShots: RoadShot[] = [
+  {
+    src: "/images/road-pov.jpg",
+    alt: "Night POV ride on an illuminated highway",
+    caption: "Night POV — the highway",
+  },
+  {
+    src: "/images/road-helmet.jpg",
+    alt: "Rider putting the helmet on at night",
+    caption: "Helmet on — the ritual",
+  },
+  {
+    src: "/images/road-curve.jpg",
+    alt: "The road curving under streetlights at night",
+    caption: "Streetlights — the curve",
+  },
+  {
+    src: "/images/night.jpg",
+    alt: "Two riders at night in front of an illuminated tower",
+    caption: "Two riders — the city",
+  },
 ];
 
 export type SocialEntry = {
@@ -102,7 +104,8 @@ export const socials: SocialEntry[] = [
 ];
 
 export const navLinks = [
-  { href: "#story", label: "Story" },
-  { href: "#garage", label: "Garage" },
-  { href: "#socials", label: "Socials" },
+  { href: "#philosophy", label: "Philosophy" },
+  { href: "#journey", label: "Journey" },
+  { href: "#road", label: "Road" },
+  { href: "#community", label: "Community" },
 ] as const;
