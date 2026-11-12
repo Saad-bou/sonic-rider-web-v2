@@ -22,13 +22,16 @@ Commerce is explicitly out of scope until the brand and audience are ready.
 - No paid services. No secrets in client code. `NEXT_PUBLIC_*` only for values that
   are public by definition. No second backend unless a real need appears.
 
-## 2. Current state (v0.1.0 — 2026-11-11)
+## 2. Current state (v0.1.0 — 2026-11-11 / home v1 — 2026-11-12)
 
 **Done:** project scaffold, strict TS, Tailwind + brand tokens, Rubik bundled (OFL),
-welcome page, favicon placeholder, `.env.example` contract, git initialized.
+**home page v1** — hero with cursor-reveal effect, marquee, scroll-linked statement,
+story timeline (2017→2026), garage grid, on/off split with real photos, socials,
+big footer; progressive-enhancement reveals (visible without JS), reduced-motion
+support, favicon placeholder, `.env.example` contract, git initialized.
 
-**Intentionally not done:** Header/Footer/Hero (home design pending), additional
-pages, ESLint/Prettier, WordPress integration, SEO infrastructure, tests.
+**Intentionally not done:** Journal/CMS pages, ESLint/Prettier, WordPress integration,
+SEO infrastructure, tests, real hero shoot (see `docs/HOME-HERO-ASSETS.md`).
 
 ## 3. Planned information architecture (agreed, not built)
 

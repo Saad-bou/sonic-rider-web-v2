@@ -38,6 +38,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={rubik.variable}>
+      <head>
+        {/** Marks JS as available so scroll-reveal can safely hide content.
+         *   Without JS the CSS keeps everything visible (progressive enhancement). */}
+        <script
+          dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }}
+        />
+      </head>
       <body className="font-sans antialiased">{children}</body>
     </html>
   );
