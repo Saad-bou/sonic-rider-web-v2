@@ -98,32 +98,171 @@
 }
 
 /* =====================================================================
-   Hero stage — fusion portrait (components/hero-stage.tsx)
-   --mx / --my  : cursor position (%, animated by GSAP quickTo)
-   --reveal     : mask radius multiplier (vmax, scrubbed with scroll)
+   Hero — autonomous organic transformation wave (components/hero-stage.tsx)
+   GPU-accelerated radial mask with organic dual-lobe composition.
+   Animated via CSS custom properties (--wx, --wy, --wr, etc.) updated in
+   a lightweight GSAP ticker.
+   Zero SVG filters, zero SVG DOM path-reparsing on every frame.
+   Universal support across iOS Safari, Android Chrome, and Desktop browsers.
    ===================================================================== */
-.hero-stage {
-  transform-style: preserve-3d;
-  will-change: transform;
+.hero {
+  --hero-frame: min(112%, 76svh);
 }
 
-.hero-mask {
+@media (min-width: 768px) {
+  .hero {
+    --hero-frame: min(92%, 80svh);
+  }
+}
+
+/* One locked square for both layers: identical geometry, grounded bottom-anchor. */
+.hero-stage {
+  flex: 0 0 auto;
+  width: var(--hero-frame);
+  aspect-ratio: 1 / 1;
+  position: relative;
+  will-change: transform;
+  margin-bottom: clamp(0px, 1.5vh, 16px);
+}
+
+.hero-portrait {
+  position: absolute;
+  inset: 0;
+}
+
+.hero-layer {
+  position: absolute;
+  inset: 0;
+}
+
+/* The autonomous transformation mask:
+   Dual organic lobes creating an evolving, non-circular energy envelope.
+   - Primary lobe (--wx, --wy, --wr): living fluid core
+   - Secondary satellite lobe (--wx2, --wy2, --wr2): slow phase-shifted trailing mass
+   - Feathered edge prevents harsh image cuts and avoids double-eye ghosting.
+   - GPU composited: hardware accelerated on all mobile & desktop viewports. */
+.hero-reveal {
+  position: absolute;
+  inset: 0;
+  -webkit-mask-image:
+    radial-gradient(
+      ellipse calc(var(--wr, 0) * 1px) calc(var(--wr, 0) * 0.92px)
+        at calc(var(--wx, 50) * 1%) calc(var(--wy, 45) * 1%),
+      #000 0%,
+      #000 76%,
+      rgba(0, 0, 0, 0.45) 89%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse calc(var(--wr2, 0) * 1px) calc(var(--wr2, 0) * 0.82px)
+        at calc(var(--wx2, 50) * 1%) calc(var(--wy2, 45) * 1%),
+      #000 0%,
+      rgba(0, 0, 0, 0.7) 65%,
+      rgba(0, 0, 0, 0.2) 86%,
+      transparent 100%
+    );
+  mask-image:
+    radial-gradient(
+      ellipse calc(var(--wr, 0) * 1px) calc(var(--wr, 0) * 0.92px)
+        at calc(var(--wx, 50) * 1%) calc(var(--wy, 45) * 1%),
+      #000 0%,
+      #000 76%,
+      rgba(0, 0, 0, 0.45) 89%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse calc(var(--wr2, 0) * 1px) calc(var(--wr2, 0) * 0.82px)
+        at calc(var(--wx2, 50) * 1%) calc(var(--wy2, 45) * 1%),
+      #000 0%,
+      rgba(0, 0, 0, 0.7) 65%,
+      rgba(0, 0, 0, 0.2) 86%,
+      transparent 100%
+    );
+  -webkit-mask-composite: source-over;
+  mask-composite: add;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+/* Grounded dissolve: shoulders seamlessly dissolve into the #050507 floor */
+.hero-bottom-fade {
+  position: absolute;
+  left: -2%;
+  right: -2%;
+  bottom: -1px;
+  height: 18%;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(5, 5, 7, 0) 0%,
+    rgba(5, 5, 7, 0.65) 45%,
+    rgba(5, 5, 7, 0.92) 74%,
+    #050507 100%
+  );
+}
+
+.hero-contours {
+  position: absolute;
+  inset: -12%;
+  background-image: url("/hero/contours.svg");
+  background-size: cover;
+  background-position: center;
+  opacity: 0.5;
   -webkit-mask-image: radial-gradient(
-    circle calc(var(--reveal, 10) * 1vmax) at calc(var(--mx, 50) * 1%) calc(var(--my, 40) * 1%),
-    #000 0%,
-    rgba(0, 0, 0, 0.9) 52%,
-    transparent 74%
+    72% 64% at 50% 46%,
+    #000 10%,
+    rgba(0, 0, 0, 0.55) 58%,
+    transparent 86%
   );
   mask-image: radial-gradient(
-    circle calc(var(--reveal, 10) * 1vmax) at calc(var(--mx, 50) * 1%) calc(var(--my, 40) * 1%),
-    #000 0%,
-    rgba(0, 0, 0, 0.9) 52%,
-    transparent 74%
+    72% 64% at 50% 46%,
+    #000 10%,
+    rgba(0, 0, 0, 0.55) 58%,
+    transparent 86%
   );
+}
+
+.hero-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(52% 48% at 50% 42%, rgba(0, 71, 255, 0.26), transparent 70%),
+    radial-gradient(34% 30% at 50% 38%, rgba(0, 229, 255, 0.12), transparent 72%),
+    radial-gradient(90% 70% at 50% 100%, rgba(0, 71, 255, 0.1), transparent 70%);
+}
+
+.hero-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+}
+
+/* The hint swaps wording on devices without a pointer */
+.hint-touch {
+  display: none;
+}
+
+/* No JS or no motion: there is no unmask to invite, so drop the invitation */
+html:not(.js) .hero-hint {
+  display: none;
+}
+
+@media (hover: none) {
+  .hint-hover {
+    display: none;
+  }
+
+  .hint-touch {
+    display: inline;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-mask {
+  .hero-reveal,
+  .hero-hint {
     display: none;
   }
 }

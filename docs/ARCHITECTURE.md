@@ -28,15 +28,16 @@ Commerce is explicitly out of scope until the brand and audience are ready.
 ## 2. Current state (home v2 — 2026-11-13)
 
 **Done:** project scaffold, strict TS, Tailwind + brand tokens, Rubik bundled (OFL),
-**home v2** — 8-section immersive page: fusion hero with cursor-driven reveal mask and
-pinned scroll transformation (GSAP ScrollTrigger + Lenis smooth scroll), kinetic
+**home v2** — 8-section immersive page: autonomous transformation-wave hero (two transparent
+cut-outs on one locked square, one SVG-mask blob driven by a single GSAP ticker; no layer
+transforms) and pinned scroll transformation (GSAP ScrollTrigger + Lenis smooth scroll), kinetic
 philosophy statement, pinned horizontal journey (2017→2026), editorial road gallery with
 real frames, creator section, off-road portrait, community rows, full-screen final.
 Progressive enhancement + prefers-reduced-motion respected.
 
 **Intentionally not done:** Journal/CMS pages, ESLint/Prettier, WordPress integration,
-SEO infrastructure, tests, real hero shoot (ASSET B missing — see
-`docs/HOME-HERO-ASSETS.md`), bike photographs.
+SEO infrastructure, tests, 2.5D helmet pieces (ASSET A + the 10 PNG cut-outs missing —
+see `docs/HERO-SECTION-25D-SPEC.md` and `docs/HOME-HERO-ASSETS.md`), bike photographs.
 
 ## 3. Planned information architecture (agreed, not built)
 

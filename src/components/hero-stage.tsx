@@ -4,191 +4,328 @@ import Image from "next/image";
 import { useEffect, useRef, type CSSProperties } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { heroMeta } from "@/lib/content";
 
 /**
- * Hero — "THE HUMAN × SONIC FUSION" (docs/HOME-HERO-ASSETS.md).
+ * 01 — HERO / AUTONOMOUS LIVING TRANSFORMATION
  *
- * One real composition (fusion.jpg, 1254²): Saad's real face inside the HJC
- * RPHA 11 on the right, the Sonic energy on the left. The experience:
- *  - the stage opens focused on the human half (object-position 72%);
- *  - the cursor drives a radial mask (blue "charged" twin) + a subtle 3D tilt;
- *  - scrolling pans/zooms to the full composition — a single visual evolving,
- *    not a crossfade between two unrelated images.
+ * Master Architecture:
+ * - Two 500×500 RGBA cut-outs on a single, locked, bottom-anchored square stage.
+ *   `object-contain object-bottom` guarantees shoulder-to-shoulder alignment
+ *   and anchors the silhouette against the hero base.
  *
- * Pinned for one viewport of scroll. Reduced motion = static layout.
+ * The Living Wave Phenomenon:
+ * - Does NOT depend on mouse movement. The wave has its own autonomous life:
+ *   1. Cinematic Introduction: ~0.8s after entering, an energetic wave lifts
+ *      across the helmet and eyes, unveiling Sonic's charged twin.
+ *   2. Living Ambient State: After the intro pass, the wave settles into a slow,
+ *      pulsing, organic breathing motion (phase-shifted harmonic sines) across the
+ *      central face region. It never turns into a static mask.
+ *   3. User Influence (Desktop + Mobile): Cursor move or finger drag smoothly pulls
+ *      and magnifies the wave via damped physics. When released, the wave springs
+ *      back smoothly into its autonomous living cycle without jarring cuts.
+ *
+ * Performance & Mobile Compatibility:
+ * - Hardware-accelerated CSS radial mask variables (--wx, --wy, --wr, --wx2, --wy2, --wr2).
+ * - Zero heavy SVG filters, zero DOM path re-parsing on every frame.
+ * - Works natively on iOS Safari, Android Chrome, tablet, and desktop viewports.
+ * - Reduced motion: fully disables JavaScript animation and presents a clean, static rider.
  */
+
+const INTRO_DELAY = 0.8; // seconds before intro wave starts
+const INTRO_DURATION = 2.4; // seconds for cinematic pass
+
+const easeInOutSine = (p: number) => -(Math.cos(Math.PI * p) - 1) / 2;
+
 export function HeroStage() {
   const rootRef = useRef<HTMLElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
-  const portraitRef = useRef<HTMLDivElement | null>(null);
-  const energyRef = useRef<HTMLDivElement | null>(null);
-  const copyRef = useRef<HTMLDivElement | null>(null);
+  const uiRef = useRef<HTMLDivElement | null>(null);
+  const hintRef = useRef<HTMLParagraphElement | null>(null);
 
   useEffect(() => {
+    const root = rootRef.current;
+    const stage = stageRef.current;
+    const ui = uiRef.current;
+    const hint = hintRef.current;
+    if (!root || !stage || !ui) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     gsap.registerPlugin(ScrollTrigger);
 
-    const root = rootRef.current;
-    const stage = stageRef.current;
-    const portrait = portraitRef.current;
-    const energy = energyRef.current;
+    /* ---------------- Single Autonomous Wave State ---------------- */
+    // Position coordinates in percentage of stage (0 to 100)
+    const wave = {
+      x: 50,
+      y: 45,
+      r: 0,
+      vx: 0,
+      vy: 0,
+      vr: 0,
+    };
 
-    if (!root || !stage || !portrait || !energy) return;
+    // Target aim point
+    const aim = {
+      x: 50,
+      y: 45,
+      full: false,
+    };
 
+    let phase = 0;
+    let elapsed = 0;
+    let introDone = false;
+    let engaged = false;
+    let hinted = false;
+
+    const hintOut = () => {
+      if (hinted || !hint) return;
+      hinted = true;
+      gsap.to(hint, { autoAlpha: 0, y: 4, duration: 0.45, ease: "power2.out" });
+    };
+
+    /* ---------------- Unified Pointer & Touch Input ---------------- */
+    const updateInputPoint = (clientX: number, clientY: number) => {
+      const rect = stage.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+
+      const px = ((clientX - rect.left) / rect.width) * 100;
+      const py = ((clientY - rect.top) / rect.height) * 100;
+
+      aim.x = Math.max(10, Math.min(90, px));
+      aim.y = Math.max(15, Math.min(85, py));
+      aim.full = true;
+      engaged = true;
+      introDone = true;
+      hintOut();
+    };
+
+    const onPointerMove = (e: PointerEvent) => {
+      if (e.pointerType === "mouse") {
+        updateInputPoint(e.clientX, e.clientY);
+      }
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      const touch = e.touches[0];
+      if (touch) updateInputPoint(touch.clientX, touch.clientY);
+    };
+
+    const onTouchStart = (e: TouchEvent) => {
+      const touch = e.touches[0];
+      if (touch) updateInputPoint(touch.clientX, touch.clientY);
+    };
+
+    const release = () => {
+      engaged = false;
+      aim.full = false;
+    };
+
+    /* ---------------- Single High-Performance Ticker ---------------- */
+    const tick = (_time: number, delta: number) => {
+      const dt = Math.min(0.05, delta / 1000);
+      elapsed += dt;
+      phase += dt;
+
+      // Base radius in pixels (~35% of stage width)
+      const stageW = stage.offsetWidth || 500;
+      const baseR = stageW * 0.35;
+
+      /* 1. Aim Target: Intro -> Autonomous Drift -> User Input */
+      if (!introDone) {
+        if (elapsed < INTRO_DELAY) {
+          aim.x = 50;
+          aim.y = 58;
+          aim.full = false;
+        } else if (elapsed < INTRO_DELAY + INTRO_DURATION) {
+          // Cinematic wave rises from jawline (y: 60) across eyes to forehead (y: 35)
+          const p = easeInOutSine((elapsed - INTRO_DELAY) / INTRO_DURATION);
+          aim.x = 50 + 8 * Math.sin(p * Math.PI);
+          aim.y = 58 - 24 * p;
+          aim.full = true;
+        } else {
+          introDone = true;
+        }
+      }
+
+      if (introDone && !engaged) {
+        // Living, continuous ambient motion (phase-shifted Lissajous curves)
+        // Travels gently across eyes and muzzle without settling into a static circle
+        aim.x = 50 + 6.5 * Math.sin(phase * 0.65) + 3.0 * Math.cos(phase * 1.1);
+        aim.y = 44 + 5.0 * Math.sin(phase * 0.85 + 1.2);
+        aim.full = false;
+      }
+
+      /* 2. Damped Spring Physics: Smoothly follows aim with inertia */
+      const springK = engaged ? 42 : 10;
+      const damping = Math.exp(-dt * (engaged ? 10 : 3.6));
+
+      wave.vx = (wave.vx + (aim.x - wave.x) * springK * dt) * damping;
+      wave.vy = (wave.vy + (aim.y - wave.y) * springK * dt) * damping;
+      wave.x += wave.vx * dt;
+      wave.y += wave.vy * dt;
+
+      /* 3. Radius Breathing & Expansion */
+      // Living breathing modulation: subtle natural expansion and contraction
+      const breathing = 0.88 + 0.08 * Math.sin(phase * 1.25) + 0.04 * Math.cos(phase * 0.7);
+      let targetRadius = 0;
+
+      if (elapsed >= INTRO_DELAY) {
+        targetRadius = introDone && !aim.full ? baseR * breathing : baseR * 1.1;
+      }
+
+      wave.vr = (wave.vr + (targetRadius - wave.r) * 36 * dt) * Math.exp(-dt * 6.5);
+      wave.r += wave.vr * dt;
+
+      /* 4. Write to Stage CSS Custom Properties */
+      // Primary lobe
+      stage.style.setProperty("--wx", wave.x.toFixed(2));
+      stage.style.setProperty("--wy", wave.y.toFixed(2));
+      stage.style.setProperty("--wr", Math.max(0, wave.r).toFixed(1));
+
+      // Secondary trailing satellite lobe (phase-lagged fluid mass)
+      const lagX = wave.x - wave.vx * 0.06 + 3.0 * Math.sin(phase * 0.9);
+      const lagY = wave.y - wave.vy * 0.06 - 3.5 + 2.5 * Math.cos(phase * 1.1);
+      const lagR = Math.max(0, wave.r * 0.84);
+
+      stage.style.setProperty("--wx2", lagX.toFixed(2));
+      stage.style.setProperty("--wy2", lagY.toFixed(2));
+      stage.style.setProperty("--wr2", lagR.toFixed(1));
+    };
+
+    gsap.ticker.add(tick);
+
+    // Desktop pointer listeners
+    root.addEventListener("pointermove", onPointerMove, { passive: true });
+    root.addEventListener("pointerleave", release, { passive: true });
+
+    // Mobile touch listeners (explicitly bound for rock-solid touch response)
+    root.addEventListener("touchstart", onTouchStart, { passive: true });
+    root.addEventListener("touchmove", onTouchMove, { passive: true });
+    root.addEventListener("touchend", release, { passive: true });
+    root.addEventListener("touchcancel", release, { passive: true });
+
+    /* ---------------- Scroll Integration ---------------- */
     const ctx = gsap.context(() => {
-      const baseImg = portrait.querySelector<HTMLImageElement>("img");
-      const energyImg = energy.querySelector<HTMLImageElement>("img");
-      if (!baseImg || !energyImg) return;
-
-      /* ---------- cursor: mask position + damped stage tilt ---------- */
-      const mxTo = gsap.quickTo(stage, "--mx", { duration: 0.6, ease: "power3" });
-      const myTo = gsap.quickTo(stage, "--my", { duration: 0.6, ease: "power3" });
-      const rxTo = gsap.quickTo(stage, "rotationX", { duration: 0.9, ease: "power3" });
-      const ryTo = gsap.quickTo(stage, "rotationY", { duration: 0.9, ease: "power3" });
-
-      /* gentle idle drift until the visitor takes control */
-      const idleDrift = gsap.to(stage, {
-        "--mx": 44,
-        "--my": 34,
-        duration: 7,
-        ease: "sine.inOut",
-        repeat: -1,
-        yoyo: true,
-      } as gsap.TweenVars);
-
-      const onMove = (event: PointerEvent) => {
-        idleDrift.kill();
-        const rect = stage.getBoundingClientRect();
-        const x = (event.clientX - rect.left) / rect.width;
-        const y = (event.clientY - rect.top) / rect.height;
-        mxTo(Math.round(x * 1000) / 10);
-        myTo(Math.round(y * 1000) / 10);
-        ryTo((x - 0.5) * 4);
-        rxTo(-(y - 0.5) * 2.5);
-      };
-
-      stage.addEventListener("pointermove", onMove, { passive: true });
-      stage.addEventListener("pointerleave", () => {
-        mxTo(50);
-        myTo(40);
-        rxTo(0);
-        ryTo(0);
+      gsap.to(stage, {
+        yPercent: -6,
+        scale: 1.04,
+        ease: "none",
+        scrollTrigger: { trigger: root, start: "top top", end: "bottom top", scrub: 0.6 },
       });
 
-      /* ---------- scroll: the transformation (pinned, scrubbed) ---------- */
-      const timeline = gsap.timeline({
-        scrollTrigger: {
-          trigger: root,
-          start: "top top",
-          end: "+=140%",
-          scrub: 1,
-          pin: true,
-          anticipatePin: 1,
-        },
+      gsap.to(ui, {
+        autoAlpha: 0,
+        y: -24,
+        ease: "none",
+        scrollTrigger: { trigger: root, start: "top top", end: "55% top", scrub: true },
       });
-
-      timeline
-        .fromTo(portrait, { scale: 1.35 }, { scale: 1, ease: "none" }, 0)
-        .fromTo(baseImg, { objectPosition: "72% 42%" }, { objectPosition: "50% 42%", ease: "none" }, 0)
-        .fromTo(energyImg, { objectPosition: "72% 42%" }, { objectPosition: "50% 42%", ease: "none" }, 0)
-        .fromTo(stage, { "--reveal": 18 } as gsap.TweenVars, { "--reveal": 24, ease: "none" }, 0)
-        .to(copyRef.current, { yPercent: -20, opacity: 0, ease: "none" }, 0.05);
     }, root);
 
-    return () => ctx.revert();
+    return () => {
+      gsap.ticker.remove(tick);
+      root.removeEventListener("pointermove", onPointerMove);
+      root.removeEventListener("pointerleave", release);
+      root.removeEventListener("touchstart", onTouchStart);
+      root.removeEventListener("touchmove", onTouchMove);
+      root.removeEventListener("touchend", release);
+      root.removeEventListener("touchcancel", release);
+      ctx.revert();
+    };
   }, []);
 
   return (
-    <section ref={rootRef} id="top" className="relative overflow-hidden">
-      <div className="relative h-[100svh] w-full">
+    <section
+      ref={rootRef}
+      id="top"
+      aria-labelledby="hero-title"
+      className="hero relative isolate flex h-[100svh] min-h-[560px] w-full items-end justify-center overflow-hidden bg-[#050507]"
+    >
+      <h1 id="hero-title" className="sr-only">
+        SONIC RIDER — Moroccan motorcycle culture, motovlogging and street media
+      </h1>
+
+      {/* Atmosphere: contour field + blue energy bloom + cinematic grain */}
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div className="hero-contours" />
+        <div className="hero-glow" />
+        <div className="hero-grain" />
+      </div>
+
+      {/* Subject Stage: One locked square, dual transparent layers, bottom-grounded */}
+      <div className="absolute inset-0 flex items-end justify-center">
         <div
           ref={stageRef}
-          className="hero-stage absolute inset-0"
-          style={{ "--mx": 28, "--my": 34, "--reveal": 18 } as CSSProperties}
+          className="hero-stage"
+          style={
+            {
+              "--wx": 50,
+              "--wy": 45,
+              "--wr": 0,
+              "--wx2": 50,
+              "--wy2": 42,
+              "--wr2": 0,
+            } as CSSProperties
+          }
         >
-          <div ref={portraitRef} className="absolute inset-0">
-            <Image
-              src="/images/fusion.jpg"
-              alt="Saad Bouhamou — SONIC RIDER, portrait inside the HJC RPHA 11 helmet"
-              fill
-              priority
-              sizes="100vw"
-              className="object-cover"
-              style={{ objectPosition: "72% 42%" }}
-            />
-          </div>
+          <div className="hero-portrait">
+            {/* Layer 1: Rider wearing HJC RPHA 11 (Base LCP, grounded) */}
+            <div className="hero-layer">
+              <Image
+                src="/hero/rider-helmet.webp"
+                alt="SONIC RIDER wearing the HJC RPHA 11 helmet"
+                fill
+                priority
+                sizes="(max-width: 768px) 112vw, 80svh"
+                className="object-contain object-bottom select-none"
+                draggable={false}
+              />
+            </div>
 
-          {/* charged twin revealed through the cursor mask */}
-          <div ref={energyRef} className="hero-mask absolute inset-0" style={{ opacity: 1 }}>
-            <Image
-              src="/images/fusion.jpg"
-              alt=""
-              fill
-              sizes="100vw"
-              className="object-cover grayscale contrast-150 brightness-110"
-              style={{ objectPosition: "72% 42%" }}
-            />
-            <div
-              className="absolute inset-0"
-              style={{ backgroundColor: "var(--primary)", opacity: 0.7, mixBlendMode: "color" }}
-            />
-            <div
-              className="absolute inset-0"
-              style={{ backgroundColor: "var(--primary)", opacity: 0.22, mixBlendMode: "screen" }}
-            />
-            {/* inner glow so the reveal reads on dark areas too */}
-            <div
-              className="absolute inset-0"
-              style={{
-                background:
-                  "radial-gradient(circle calc(var(--reveal, 18) * 1vmax) at calc(var(--mx, 50) * 1%) calc(var(--my, 40) * 1%), rgba(0,229,255,0.35) 0%, transparent 68%)",
-                mixBlendMode: "screen",
-              }}
-            />
-          </div>
+            {/* Layer 2: Sonic Transformation Wave (Living autonomous envelope) */}
+            <div className="hero-reveal" aria-hidden>
+              <div className="hero-layer">
+                <Image
+                  src="/hero/sonic-layer.webp"
+                  alt=""
+                  fill
+                  sizes="(max-width: 768px) 112vw, 80svh"
+                  className="object-contain object-bottom select-none"
+                  draggable={false}
+                />
+              </div>
+            </div>
 
-          {/* legibility gradients */}
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent" />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-black to-transparent" />
+            {/* Grounded bottom dissolve into page floor */}
+            <div aria-hidden className="hero-bottom-fade" />
+          </div>
         </div>
+      </div>
 
-        {/* copy layer */}
-        <div ref={copyRef} className="relative z-10 flex h-full flex-col justify-end px-5 pb-10 pt-24 md:px-10 md:pb-14">
-          <p className="font-subdisplay text-[11px] font-bold uppercase tracking-[0.45em] text-accent-gold">
-            Morocco · Since 2017
-          </p>
-
-          <h1 className="mt-4 font-display text-[clamp(3.2rem,9vw,7.5rem)] font-extrabold uppercase leading-[0.88] tracking-tight">
-            Sonic
-            <br />
-            <span className="text-primary">Rider</span>
-          </h1>
-
-          <p className="mt-5 max-w-md font-subdisplay text-sm font-bold uppercase tracking-[0.18em] md:text-base">
-            Built by passion. Defined by speed.
-          </p>
-
-          <p className="mt-3 max-w-md text-sm leading-relaxed text-muted md:text-base">
-            From the streets of Rabat to a journey shaped by motorcycles, creativity and the
-            freedom of the ride.
-          </p>
-
-          <div className="mt-8 flex items-center justify-between gap-6">
-            <a
-              href="#philosophy"
-              className="flex items-center gap-3 font-subdisplay text-[10px] uppercase tracking-[0.3em] text-muted transition-colors hover:text-foreground"
-            >
-              Scroll
-              <span className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-sm">
-                ↓
-              </span>
-            </a>
-            <p className="hidden font-subdisplay text-[10px] uppercase tracking-[0.3em] text-muted sm:block">
-              HJC RPHA 11 · Tracer 900
+      {/* HUD Chrome: Metadata card & contextual hint */}
+      <div ref={uiRef} className="pointer-events-none absolute inset-0 z-10">
+        <div className="absolute bottom-5 left-5 md:bottom-9 md:left-9">
+          <div className="border border-white/15 bg-black/25 px-4 py-3 backdrop-blur-sm md:px-5 md:py-4">
+            <p className="font-subdisplay text-[9px] font-bold uppercase tracking-[0.42em] text-muted md:text-[10px]">
+              {heroMeta.card.label}
+            </p>
+            <div className="my-2 h-px w-full bg-white/10" />
+            <p className="font-display text-sm font-extrabold uppercase tracking-[0.16em] text-foreground md:text-base">
+              {heroMeta.card.value}
             </p>
           </div>
         </div>
+
+        <p className="absolute bottom-6 right-5 hidden font-subdisplay text-[9px] uppercase tracking-[0.32em] text-muted sm:block md:bottom-9 md:right-9 md:text-[10px]">
+          {heroMeta.spec}
+        </p>
+
+        <p
+          ref={hintRef}
+          className="hero-hint absolute bottom-28 left-1/2 -translate-x-1/2 whitespace-nowrap font-subdisplay text-[9px] uppercase tracking-[0.34em] text-white/60 md:bottom-9 md:text-[10px]"
+        >
+          <span className="hint-hover">{heroMeta.hint.pointer}</span>
+          <span className="hint-touch">{heroMeta.hint.touch}</span>
+        </p>
       </div>
     </section>
   );

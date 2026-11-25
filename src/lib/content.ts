@@ -103,6 +103,12 @@ export const socials: SocialEntry[] = [
   },
 ];
 
+export const heroMeta = {
+  card: { label: "Next ride", value: "Rabat · 2026" },
+  spec: "HJC RPHA 11 · Tracer 900",
+  hint: { pointer: "Move — unmask", touch: "Drag — unmask" },
+} as const;
+
 export const navLinks = [
   { href: "#philosophy", label: "Philosophy" },
   { href: "#journey", label: "Journey" },
